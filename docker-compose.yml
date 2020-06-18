@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  hdlproxy_dev:
+    container_name: hdlproxy_dev
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
+    image: hdlproxy_dev:latest
+    environment:
+      HDLPROXY_HDL_URI: 'https://hdl.grnet.gr/'
+      HDLPROXY_PID_URL_PREFICES: '11500 http://hdl.grnet.gr/'
+      HDLPROXY_CMDI_URLS: '11500 https://inventory.clarin.gr/oai_pmh/'
+    ports:
+      - "5000:5000"
+  hdlproxy_prod:
+    container_name: hdlproxy_prod
+    build:
+      context: ./
+      dockerfile: Dockerfile.prod
+    image: hdlproxy_prod:latest
+    environment:
+      HDLPROXY_HDL_URI: 'https://hdl.grnet.gr/'
+      HDLPROXY_PID_URL_PREFICES: '11500 http://hdl.grnet.gr/'
+      HDLPROXY_CMDI_URLS: '11500 https://inventory.clarin.gr/oai_pmh/'
+    ports:
+      - "8000:8000"
