@@ -1,0 +1,48 @@
+FROM debian:buster-slim AS builder-base
+
+ARG GIT_COMMIT=none
+LABEL git_commit=$GIT_COMMIT
+ENV OPTION_ROOTDIR /srv
+ENV OPTION_APPDIR ${OPTION_ROOTDIR}/app
+ENV OPTION_VENVDIR ${OPTION_ROOTDIR}/venv
+ENV OPTION_GUNICORN_PORT 8000
+ENV OPTION_GUNICORN_WORKERS 4
+
+# Stage 1: Install python dependencies
+FROM builder-base AS builder-app
+LABEL stage=temdril-intermediate-$GIT_COMMIT
+
+# Install and setup virtualenv
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y \
+    python3-virtualenv \
+    virtualenv
+RUN python3 -m virtualenv --python=/usr/bin/python3 ${OPTION_VENVDIR}
+
+# Add requirements
+ADD requirements.txt ${OPTION_APPDIR}/
+
+# Run inside virtualenv
+WORKDIR ${OPTION_APPDIR}
+ENV PATH="$OPTION_VENVDIR/bin:$PATH"
+
+# Install requirements and gunicorn
+RUN pip3 install -r requirements.txt gunicorn
+
+
+# Stage 3: Create final image
+FROM builder-base
+
+# Install necessary python and libs
+RUN apt-get update && apt-get install --no-install-recommends -y python3
+
+# Copy virtualenv from intermediate container
+COPY --from=builder-app ${OPTION_VENVDIR} ${OPTION_VENVDIR}
+
+# Add actual application code and entrypoint script
+ADD . ${OPTION_APPDIR}/
+
+COPY ./entrypoint.prod.sh /entrypoint.prod.sh
+WORKDIR ${OPTION_APPDIR}
+EXPOSE ${OPTION_GUNICORN_PORT}
+CMD ["/entrypoint.prod.sh"]
