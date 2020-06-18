@@ -1,0 +1,11 @@
+version: '3.7'
+
+services:
+  hdlproxy_dev:
+    container_name: hdlproxy_dev
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
+    image: hdlproxy_dev:latest
+    ports:
+      - "5000:5000"
